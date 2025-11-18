@@ -29,14 +29,15 @@ export const loadTodosHandler = async (
 export const addTodoHandler = async (
   e: React.FormEvent,
   newTitle: string,
-  todos: Todo[],
-  setTodos: (todos: Todo[]) => void,
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>,
   setNewTitle: (title: string) => void,
   setIsSubmitting: (value: boolean) => void,
+  setTempTodo: (todo: Todo | null) => void,
+  inputRef: React.RefObject<HTMLInputElement>,
+  userId: number,
   showError: (message: string) => void,
 ): Promise<void> => {
   e.preventDefault();
-
   const trimmed = newTitle.trim();
 
   if (!trimmed) {
@@ -45,30 +46,36 @@ export const addTodoHandler = async (
     return;
   }
 
-  setIsSubmitting(true);
-  try {
-    const created = await addTodo(trimmed);
+  const optimistic: Todo = { id: 0, title: trimmed, completed: false, userId };
 
-    setTodos([...todos, created]);
+  setTempTodo(optimistic);
+  setIsSubmitting(true);
+
+  try {
+    const created = await addTodo({ title: trimmed, userId, completed: false });
+
+    setTodos(prev => [...prev, created]);
+
     setNewTitle('');
   } catch {
     showError(ERROR_MESSAGES.ADD);
   } finally {
+    setTempTodo(null);
     setIsSubmitting(false);
+    inputRef.current?.focus();
   }
 };
 
 export const updateTodoHandler = async (
   id: number,
   data: Partial<Todo>,
-  todos: Todo[],
-  setTodos: (todos: Todo[]) => void,
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>,
   showError: (message: string) => void,
 ): Promise<void> => {
   try {
     const updated = await updateTodo({ id, ...data });
 
-    setTodos(replaceTodo(todos, updated));
+    setTodos(prev => replaceTodo(prev, updated));
   } catch {
     showError(ERROR_MESSAGES.UPDATE);
   }
@@ -76,13 +83,13 @@ export const updateTodoHandler = async (
 
 export const deleteTodoHandler = async (
   id: number,
-  todos: Todo[],
-  setTodos: (todos: Todo[]) => void,
+  setTodos: React.Dispatch<React.SetStateAction<Todo[]>>,
   showError: (message: string) => void,
 ): Promise<void> => {
   try {
     await deleteTodo(id);
-    setTodos(removeTodo(todos, id));
+
+    setTodos(prev => removeTodo(prev, id));
   } catch {
     showError(ERROR_MESSAGES.DELETE);
   }
