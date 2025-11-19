@@ -12,6 +12,7 @@ import { TodoHeader } from './components/TodoHeader';
 import { TodoMain } from './components/TodoMain';
 import { TodoFooter } from './components/TodoFooter';
 import { Loader } from './components/Loader';
+import { ErrorNotification } from './components/ErrorNotification';
 
 import {
   selectFilteredTodos,
@@ -35,9 +36,10 @@ export const App: React.FC = () => {
     handleDeleteTodo,
   } = useTodos(USER_ID);
 
-  const { error, hideError, isVisible, showError } = useErrorNotification();
+  const { message, visible, hideError, showError } = useErrorNotification();
 
-  if (notification && !isVisible) {
+  // Show error notification when a new notification arrives
+  if (notification && !visible) {
     showError(notification);
   }
 
@@ -81,20 +83,11 @@ export const App: React.FC = () => {
 
       {loading && <Loader />}
 
-      {error && isVisible && (
-        <div
-          data-cy="ErrorNotification"
-          className="notification is-danger is-light has-text-weight-normal"
-        >
-          <button
-            data-cy="HideErrorButton"
-            type="button"
-            className="delete"
-            onClick={hideError}
-          />
-          {error}
-        </div>
-      )}
+      <ErrorNotification
+        message={message}
+        visible={visible}
+        onHide={hideError}
+      />
     </div>
   );
 };
