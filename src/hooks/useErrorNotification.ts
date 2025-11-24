@@ -1,17 +1,32 @@
-import { useCallback, useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export const useErrorNotification = () => {
-  const [message, setMessage] = useState<string | null>(null);
-  const [visible, setVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
-  const showError = useCallback((msg: string) => {
-    setMessage(msg);
-    setVisible(true);
+  const showError = useCallback((message: string) => {
+    setError(message);
+    setIsVisible(true);
   }, []);
 
   const hideError = useCallback(() => {
-    setVisible(false);
+    setIsVisible(false);
+    setError(null);
   }, []);
 
-  return { message, visible, showError, hideError };
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      hideError();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isVisible, hideError]);
+
+  const hidden = !isVisible;
+
+  return { error, isVisible, hidden, showError, hideError };
 };

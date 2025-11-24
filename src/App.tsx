@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserWarning } from './UserWarning';
 import { USER_ID } from './api/todos';
 import { FILTERS, FilterType } from './constants/filters';
@@ -26,6 +26,7 @@ export const App: React.FC = () => {
 
   const {
     todos,
+    tempTodo,
     loading,
     isSubmitting,
     newTitle,
@@ -36,12 +37,13 @@ export const App: React.FC = () => {
     handleDeleteTodo,
   } = useTodos(USER_ID);
 
-  const { message, visible, hideError, showError } = useErrorNotification();
+  const { error, isVisible, showError, hideError } = useErrorNotification();
 
-  // Show error notification when a new notification arrives
-  if (notification && !visible) {
-    showError(notification);
-  }
+  useEffect(() => {
+    if (notification) {
+      showError(notification);
+    }
+  }, [notification, showError]);
 
   const filteredTodos = selectFilteredTodos(todos, filter);
   const activeTodosCount = selectActiveCount(todos);
@@ -67,6 +69,7 @@ export const App: React.FC = () => {
 
         <TodoMain
           todos={filteredTodos}
+          tempTodo={tempTodo}
           onUpdateTodo={handleUpdateTodo}
           onDeleteTodo={handleDeleteTodo}
         />
@@ -83,11 +86,7 @@ export const App: React.FC = () => {
 
       {loading && <Loader />}
 
-      <ErrorNotification
-        message={message}
-        visible={visible}
-        onHide={hideError}
-      />
+      <ErrorNotification error={error} hidden={!isVisible} onHide={hideError} />
     </div>
   );
 };

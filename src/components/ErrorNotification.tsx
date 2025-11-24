@@ -1,21 +1,20 @@
 import React from 'react';
 
-interface Props {
-  message: string | null;
-  visible: boolean;
+type Props = {
+  error: string | null;
+  hidden: boolean;
   onHide: () => void;
-}
+};
 
 export const ErrorNotification: React.FC<Props> = ({
-  message,
-  visible,
+  error,
+  hidden,
   onHide,
 }) => (
   <div
+    role="alert"
     data-cy="ErrorNotification"
-    className={`notification is-danger is-light has-text-weight-normal ${
-      visible ? '' : 'is-hidden'
-    }`}
+    className={`notification is-danger is-light has-text-weight-normal ${hidden ? 'hidden' : ''}`}
   >
     <button
       data-cy="HideErrorButton"
@@ -23,6 +22,6 @@ export const ErrorNotification: React.FC<Props> = ({
       className="delete"
       onClick={onHide}
     />
-    {message}
+    {error}
   </div>
 );

@@ -12,7 +12,6 @@ export function useTodos(userId: number) {
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  /** load todos on mount */
   useEffect(() => {
     const loadTodos = async () => {
       setLoading(true);
@@ -42,7 +41,7 @@ export function useTodos(userId: number) {
       }
 
       const optimistic: Todo = {
-        id: 0,
+        id: 0, // temporary id
         title: trimmed,
         completed: false,
         userId,
@@ -60,10 +59,10 @@ export function useTodos(userId: number) {
 
         setTodos(prev => [...prev, created]);
         setNewTitle('');
+        setTempTodo(null); // clear only on success
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
       } finally {
-        setTempTodo(null);
         setIsSubmitting(false);
         inputRef.current?.focus();
       }
@@ -84,24 +83,26 @@ export function useTodos(userId: number) {
     [setTodos],
   );
 
-  /** delete todo */
-  const handleDeleteTodo = useCallback(async (id: number) => {
-    try {
-      await deleteTodo(id);
-      setTodos(prev => prev.filter(t => t.id !== id));
-    } catch {
-      setNotification(ERROR_MESSAGES.DELETE);
-    }
-  }, []);
+  const handleDeleteTodo = useCallback(
+    async (id: number) => {
+      try {
+        await deleteTodo(id);
+        setTodos(prev => prev.filter(t => t.id !== id));
+      } catch {
+        setNotification(ERROR_MESSAGES.DELETE);
+      }
+    },
+    [setTodos],
+  );
 
   return {
     todos,
+    tempTodo,
     loading,
     isSubmitting,
     newTitle,
     setNewTitle,
     notification,
-    tempTodo,
     inputRef,
     handleAddTodo,
     handleUpdateTodo,
