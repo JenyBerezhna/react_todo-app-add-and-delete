@@ -59,7 +59,7 @@ export function useTodos(userId: number) {
 
         setTodos(prev => [...prev, created]);
         setNewTitle('');
-        setTempTodo(null); // clear only on success
+        setTempTodo(null);
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
       } finally {
