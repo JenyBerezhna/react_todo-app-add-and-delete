@@ -3,5 +3,5 @@ export const ERROR_MESSAGES = {
   ADD: 'Unable to add a new todo',
   UPDATE: 'Unable to update the todo',
   DELETE: 'Unable to delete the todo',
-  EMPTY_TITLE: 'Title cannot be empty.',
+  EMPTY_TITLE: 'Title should not be empty',
 } as const;

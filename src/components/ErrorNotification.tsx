@@ -14,7 +14,9 @@ export const ErrorNotification: React.FC<Props> = ({
   <div
     role="alert"
     data-cy="ErrorNotification"
-    className={`notification is-danger is-light has-text-weight-normal ${hidden ? 'hidden' : ''}`}
+    className={`notification is-danger is-light has-text-weight-normal ${
+      hidden ? 'hidden' : ''
+    }`}
   >
     <button
       data-cy="HideErrorButton"
@@ -22,6 +24,6 @@ export const ErrorNotification: React.FC<Props> = ({
       className="delete"
       onClick={onHide}
     />
-    {error}
+    {error || ''}
   </div>
 );

@@ -1,37 +1,32 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Todo } from '../types/Todo';
-import { Loader } from '../components/Loader';
 
 interface TodoItemProps {
   todo: Todo;
   onUpdate: (id: number, data: Partial<Todo>) => Promise<void> | void;
   onDelete: (id: number) => Promise<void> | void;
   isTemporary?: boolean;
+  isProcessing?: boolean;
 }
 
 export const TodoItem: React.FC<TodoItemProps> = ({
   todo,
   onUpdate,
   onDelete,
-  isTemporary,
+  isTemporary = false,
+  isProcessing = false,
 }) => {
   const { id, title, completed } = todo;
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const handleToggle = async () => {
-    setIsLoading(true);
     await onUpdate(id, { completed: !completed });
-    setIsLoading(false);
   };
 
   const handleDelete = async () => {
-    setIsLoading(true);
     await onDelete(id);
-    setIsLoading(false);
   };
 
-  const showLoader = isTemporary || isLoading;
+  const showLoader = isTemporary || isProcessing;
 
   return (
     <div data-cy="Todo" className={`todo ${completed ? 'completed' : ''}`}>
@@ -65,11 +60,12 @@ export const TodoItem: React.FC<TodoItemProps> = ({
         ×
       </button>
 
-      {showLoader && (
-        <div data-cy="TodoLoader" className="todo__loader">
-          <Loader />
-        </div>
-      )}
+      <div
+        className={`todo__loader ${showLoader ? 'is-active' : ''}`}
+        data-cy="TodoLoader"
+      >
+        <div className="loader" />
+      </div>
     </div>
   );
 };

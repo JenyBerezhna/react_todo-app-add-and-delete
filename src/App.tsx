@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { UserWarning } from './UserWarning';
 import { USER_ID } from './api/todos';
 import { FILTERS, FilterType } from './constants/filters';
@@ -24,9 +24,12 @@ import {
 export const App: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>(FILTERS.ALL);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const {
     todos,
     tempTodo,
+    processingIds,
     loading,
     isSubmitting,
     newTitle,
@@ -65,11 +68,13 @@ export const App: React.FC = () => {
           setNewTitle={setNewTitle}
           isSubmitting={isSubmitting}
           handleAddTodo={handleAddTodo}
+          inputRef={inputRef}
         />
 
         <TodoMain
           todos={filteredTodos}
           tempTodo={tempTodo}
+          processingIds={processingIds}
           onUpdateTodo={handleUpdateTodo}
           onDeleteTodo={handleDeleteTodo}
         />

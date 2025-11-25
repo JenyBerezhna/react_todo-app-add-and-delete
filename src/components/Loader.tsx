@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const Loader: React.FC = () => (
-  <div data-cy="TodoLoader" className="modal overlay is-active">
+  <div className="todo__loader" data-cy="TodoLoader">
     <div className="modal-background has-background-white-ter" />
     <div className="loader" />
   </div>

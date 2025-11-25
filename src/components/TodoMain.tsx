@@ -7,6 +7,7 @@ interface TodoMainProps {
   tempTodo?: Todo | null;
   onUpdateTodo: (id: number, data: Partial<Todo>) => void;
   onDeleteTodo: (id: number) => void;
+  processingIds?: number[];
 }
 
 export const TodoMain: React.FC<TodoMainProps> = ({
@@ -14,6 +15,7 @@ export const TodoMain: React.FC<TodoMainProps> = ({
   tempTodo,
   onUpdateTodo,
   onDeleteTodo,
+  processingIds = [],
 }) => (
   <section className="todoapp__main">
     <ul className="todoapp__list" data-cy="TodoList">
@@ -23,15 +25,16 @@ export const TodoMain: React.FC<TodoMainProps> = ({
           todo={todo}
           onUpdate={onUpdateTodo}
           onDelete={onDeleteTodo}
+          isProcessing={processingIds.includes(todo.id)}
         />
       ))}
 
-      {/* create a todo with `id: 0`*/}
-      {tempTodo && !todos.some(t => t.id === tempTodo.id) && (
+      {tempTodo && (
         <TodoItem
-          key={tempTodo.id}
+          key={0} //Temp todo (always id: 0,
           todo={tempTodo}
           isTemporary
+          isProcessing
           onUpdate={onUpdateTodo}
           onDelete={onDeleteTodo}
         />

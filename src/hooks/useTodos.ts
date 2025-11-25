@@ -6,15 +6,20 @@ import { ERROR_MESSAGES } from '../constants/errors';
 export function useTodos(userId: number) {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [newTitle, setNewTitle] = useState('');
-  const [notification, setNotification] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
+  const [processingIds, setProcessingIds] = useState<number[]>([]);
+
+  const [notification, setNotification] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const loadTodos = async () => {
+    const load = async () => {
       setLoading(true);
+
       try {
         const list = await getTodos();
 
@@ -26,12 +31,13 @@ export function useTodos(userId: number) {
       }
     };
 
-    loadTodos();
+    load();
   }, []);
 
   const handleAddTodo = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+
       const trimmed = newTitle.trim();
 
       if (!trimmed) {
@@ -41,7 +47,7 @@ export function useTodos(userId: number) {
       }
 
       const optimistic: Todo = {
-        id: 0, // temporary id
+        id: 0,
         title: trimmed,
         completed: false,
         userId,
@@ -57,12 +63,13 @@ export function useTodos(userId: number) {
           completed: false,
         });
 
+        // Add REAL todo from API response
         setTodos(prev => [...prev, created]);
         setNewTitle('');
-        setTempTodo(null);
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
       } finally {
+        setTempTodo(null);
         setIsSubmitting(false);
         inputRef.current?.focus();
       }
@@ -72,37 +79,43 @@ export function useTodos(userId: number) {
 
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
+      setProcessingIds(ids => [...ids, id]);
+
       try {
         const updated = await updateTodo({ id, ...data });
 
         setTodos(prev => prev.map(t => (t.id === updated.id ? updated : t)));
       } catch {
         setNotification(ERROR_MESSAGES.UPDATE);
+      } finally {
+        setProcessingIds(ids => ids.filter(x => x !== id));
       }
     },
-    [setTodos],
+    [],
   );
 
-  const handleDeleteTodo = useCallback(
-    async (id: number) => {
-      try {
-        await deleteTodo(id);
-        setTodos(prev => prev.filter(t => t.id !== id));
-      } catch {
-        setNotification(ERROR_MESSAGES.DELETE);
-      }
-    },
-    [setTodos],
-  );
+  const handleDeleteTodo = useCallback(async (id: number) => {
+    setProcessingIds(ids => [...ids, id]);
+
+    try {
+      await deleteTodo(id);
+      setTodos(prev => prev.filter(t => t.id !== id));
+    } catch {
+      setNotification(ERROR_MESSAGES.DELETE);
+    } finally {
+      setProcessingIds(ids => ids.filter(x => x !== id));
+    }
+  }, []);
 
   return {
     todos,
     tempTodo,
-    loading,
-    isSubmitting,
     newTitle,
     setNewTitle,
+    isSubmitting,
     notification,
+    loading,
+    processingIds,
     inputRef,
     handleAddTodo,
     handleUpdateTodo,
