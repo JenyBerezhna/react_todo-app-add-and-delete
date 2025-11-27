@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Todo } from '../types/Todo';
 import { getTodos, addTodo, updateTodo, deleteTodo } from '../api/todos';
 import { ERROR_MESSAGES } from '../constants/errors';
+import { useRefocus } from './useRefocus';
 
 export function useTodos(userId: number) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -15,6 +16,8 @@ export function useTodos(userId: number) {
 
   const [notification, setNotification] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useRefocus(inputRef, [todos, notification, isSubmitting]);
 
   useEffect(() => {
     const load = async () => {
@@ -68,6 +71,7 @@ export function useTodos(userId: number) {
         setNewTitle('');
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
+        inputRef.current?.focus();
       } finally {
         setTempTodo(null);
         setIsSubmitting(false);
