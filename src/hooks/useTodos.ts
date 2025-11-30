@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Todo } from '../types/Todo';
 import { getTodos, addTodo, updateTodo, deleteTodo } from '../api/todos';
 import { ERROR_MESSAGES } from '../constants/errors';
-import { useRefocus } from './useRefocus';
 
 export function useTodos(userId: number) {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -17,12 +16,13 @@ export function useTodos(userId: number) {
   const [notification, setNotification] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useRefocus(inputRef, [todos, notification, isSubmitting]);
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-
       try {
         const list = await getTodos();
 
@@ -31,11 +31,12 @@ export function useTodos(userId: number) {
         setNotification(ERROR_MESSAGES.LOAD);
       } finally {
         setLoading(false);
+        focusInput();
       }
     };
 
     load();
-  }, []);
+  }, [focusInput]);
 
   const handleAddTodo = useCallback(
     async (e: React.FormEvent) => {
@@ -45,6 +46,7 @@ export function useTodos(userId: number) {
 
       if (!trimmed) {
         setNotification(ERROR_MESSAGES.EMPTY_TITLE);
+        focusInput();
 
         return;
       }
@@ -66,50 +68,53 @@ export function useTodos(userId: number) {
           completed: false,
         });
 
-        // Add REAL todo from API response
         setTodos(prev => [...prev, created]);
         setNewTitle('');
+        focusInput();
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
-        inputRef.current?.focus();
+        focusInput();
       } finally {
         setTempTodo(null);
         setIsSubmitting(false);
-        inputRef.current?.focus();
       }
     },
-    [newTitle, userId],
+    [newTitle, userId, focusInput],
   );
 
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
       setProcessingIds(ids => [...ids, id]);
-
       try {
         const updated = await updateTodo({ id, ...data });
 
         setTodos(prev => prev.map(t => (t.id === updated.id ? updated : t)));
       } catch {
         setNotification(ERROR_MESSAGES.UPDATE);
+        focusInput();
       } finally {
         setProcessingIds(ids => ids.filter(x => x !== id));
       }
     },
-    [],
+    [focusInput],
   );
 
-  const handleDeleteTodo = useCallback(async (id: number) => {
-    setProcessingIds(ids => [...ids, id]);
-
-    try {
-      await deleteTodo(id);
-      setTodos(prev => prev.filter(t => t.id !== id));
-    } catch {
-      setNotification(ERROR_MESSAGES.DELETE);
-    } finally {
-      setProcessingIds(ids => ids.filter(x => x !== id));
-    }
-  }, []);
+  const handleDeleteTodo = useCallback(
+    async (id: number) => {
+      setProcessingIds(ids => [...ids, id]);
+      try {
+        await deleteTodo(id);
+        setTodos(prev => prev.filter(t => t.id !== id));
+        focusInput();
+      } catch {
+        setNotification(ERROR_MESSAGES.DELETE);
+        focusInput();
+      } finally {
+        setProcessingIds(ids => ids.filter(x => x !== id));
+      }
+    },
+    [focusInput],
+  );
 
   return {
     todos,

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useEffect } from 'react';
 
 export interface TodoHeaderProps {
   allCompleted: boolean;
@@ -18,12 +17,6 @@ export const TodoHeader: React.FC<TodoHeaderProps> = ({
   handleAddTodo,
   inputRef,
 }) => {
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
   return (
     <header className="todoapp__header">
       <form onSubmit={handleAddTodo}>
