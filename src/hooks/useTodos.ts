@@ -14,15 +14,22 @@ export function useTodos(userId: number) {
   const [processingIds, setProcessingIds] = useState<number[]>([]);
 
   const [notification, setNotification] = useState<string | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
+  //  helper to focus the input
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
+    focusInput();
+  }, [focusInput]);
+
+  useEffect(() => {
     const load = async () => {
       setLoading(true);
+
       try {
         const list = await getTodos();
 
@@ -70,13 +77,12 @@ export function useTodos(userId: number) {
 
         setTodos(prev => [...prev, created]);
         setNewTitle('');
-        focusInput();
       } catch {
         setNotification(ERROR_MESSAGES.ADD);
-        focusInput();
       } finally {
         setTempTodo(null);
         setIsSubmitting(false);
+        focusInput();
       }
     },
     [newTitle, userId, focusInput],
@@ -84,7 +90,8 @@ export function useTodos(userId: number) {
 
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
-      setProcessingIds(ids => [...ids, id]);
+      setProcessingIds(ids => (ids.includes(id) ? ids : [...ids, id]));
+
       try {
         const updated = await updateTodo({ id, ...data });
 
@@ -101,16 +108,16 @@ export function useTodos(userId: number) {
 
   const handleDeleteTodo = useCallback(
     async (id: number) => {
-      setProcessingIds(ids => [...ids, id]);
+      setProcessingIds(ids => (ids.includes(id) ? ids : [...ids, id]));
+
       try {
         await deleteTodo(id);
         setTodos(prev => prev.filter(t => t.id !== id));
-        focusInput();
       } catch {
         setNotification(ERROR_MESSAGES.DELETE);
-        focusInput();
       } finally {
         setProcessingIds(ids => ids.filter(x => x !== id));
+        focusInput();
       }
     },
     [focusInput],
