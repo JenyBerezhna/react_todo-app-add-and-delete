@@ -14,22 +14,21 @@ export function useTodos(userId: number) {
   const [processingIds, setProcessingIds] = useState<number[]>([]);
 
   const [notification, setNotification] = useState<string | null>(null);
-
   const inputRef = useRef<HTMLInputElement>(null);
 
-  //  helper to focus the input
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    focusInput();
-  }, [focusInput]);
+    if (!tempTodo) {
+      focusInput();
+    }
+  }, [todos, tempTodo, focusInput]);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-
       try {
         const list = await getTodos();
 
@@ -38,12 +37,11 @@ export function useTodos(userId: number) {
         setNotification(ERROR_MESSAGES.LOAD);
       } finally {
         setLoading(false);
-        focusInput();
       }
     };
 
     load();
-  }, [focusInput]);
+  }, []);
 
   const handleAddTodo = useCallback(
     async (e: React.FormEvent) => {
@@ -82,7 +80,6 @@ export function useTodos(userId: number) {
       } finally {
         setTempTodo(null);
         setIsSubmitting(false);
-        focusInput();
       }
     },
     [newTitle, userId, focusInput],
@@ -90,38 +87,31 @@ export function useTodos(userId: number) {
 
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
-      setProcessingIds(ids => (ids.includes(id) ? ids : [...ids, id]));
-
+      setProcessingIds(ids => [...ids, id]);
       try {
         const updated = await updateTodo({ id, ...data });
 
         setTodos(prev => prev.map(t => (t.id === updated.id ? updated : t)));
       } catch {
         setNotification(ERROR_MESSAGES.UPDATE);
-        focusInput();
       } finally {
         setProcessingIds(ids => ids.filter(x => x !== id));
       }
     },
-    [focusInput],
+    [],
   );
 
-  const handleDeleteTodo = useCallback(
-    async (id: number) => {
-      setProcessingIds(ids => (ids.includes(id) ? ids : [...ids, id]));
-
-      try {
-        await deleteTodo(id);
-        setTodos(prev => prev.filter(t => t.id !== id));
-      } catch {
-        setNotification(ERROR_MESSAGES.DELETE);
-      } finally {
-        setProcessingIds(ids => ids.filter(x => x !== id));
-        focusInput();
-      }
-    },
-    [focusInput],
-  );
+  const handleDeleteTodo = useCallback(async (id: number) => {
+    setProcessingIds(ids => [...ids, id]);
+    try {
+      await deleteTodo(id);
+      setTodos(prev => prev.filter(t => t.id !== id));
+    } catch {
+      setNotification(ERROR_MESSAGES.DELETE);
+    } finally {
+      setProcessingIds(ids => ids.filter(x => x !== id));
+    }
+  }, []);
 
   return {
     todos,

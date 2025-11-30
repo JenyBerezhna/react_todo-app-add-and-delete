@@ -29,6 +29,7 @@ export const TodoHeader: React.FC<TodoHeaderProps> = ({
           value={newTitle}
           onChange={e => setNewTitle(e.target.value)}
           disabled={isSubmitting}
+          autoFocus
         />
       </form>
     </header>
