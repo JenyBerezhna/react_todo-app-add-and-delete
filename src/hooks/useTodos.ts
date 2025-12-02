@@ -16,15 +16,10 @@ export function useTodos(userId: number) {
   const [notification, setNotification] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /** Focus input when needed */
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    if (!tempTodo) {
-      inputRef.current?.focus();
-    }
-  }, [todos, tempTodo, focusInput]);
 
   useEffect(() => {
     const load = async () => {
@@ -43,10 +38,10 @@ export function useTodos(userId: number) {
     load();
   }, []);
 
+  /** Add new todo */
   const handleAddTodo = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-
       const trimmed = newTitle.trim();
 
       if (!trimmed) {
@@ -85,6 +80,7 @@ export function useTodos(userId: number) {
     [newTitle, userId, focusInput],
   );
 
+  /** Update todo */
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
       setProcessingIds(ids => [...ids, id]);
@@ -101,6 +97,7 @@ export function useTodos(userId: number) {
     [],
   );
 
+  /** Delete single todo */
   const handleDeleteTodo = useCallback(async (id: number) => {
     setProcessingIds(ids => [...ids, id]);
     try {
@@ -112,6 +109,26 @@ export function useTodos(userId: number) {
       setProcessingIds(ids => ids.filter(x => x !== id));
     }
   }, []);
+
+  /** Clear all completed todos  */
+  const handleClearCompleted = useCallback(async () => {
+    const completed = todos.filter(t => t.completed);
+
+    setProcessingIds(ids => [...ids, ...completed.map(t => t.id)]);
+
+    await Promise.all(
+      completed.map(async todo => {
+        try {
+          await deleteTodo(todo.id);
+          setTodos(prev => prev.filter(t => t.id !== todo.id));
+        } catch {
+          setNotification(ERROR_MESSAGES.DELETE);
+        } finally {
+          setProcessingIds(ids => ids.filter(x => x !== todo.id));
+        }
+      }),
+    );
+  }, [todos]);
 
   return {
     todos,
@@ -126,5 +143,6 @@ export function useTodos(userId: number) {
     handleAddTodo,
     handleUpdateTodo,
     handleDeleteTodo,
+    handleClearCompleted,
   };
 }
