@@ -22,7 +22,7 @@ export function useTodos(userId: number) {
 
   useEffect(() => {
     if (!tempTodo) {
-      focusInput();
+      inputRef.current?.focus();
     }
   }, [todos, tempTodo, focusInput]);
 

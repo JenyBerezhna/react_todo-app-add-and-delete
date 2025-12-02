@@ -49,8 +49,10 @@ export const App: React.FC = () => {
   }, [notification, showError]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, [todos]);
+    if (!tempTodo) {
+      inputRef.current?.focus();
+    }
+  }, [todos, tempTodo]);
 
   const filteredTodos = selectFilteredTodos(todos, filter);
   const activeTodosCount = selectActiveCount(todos);
