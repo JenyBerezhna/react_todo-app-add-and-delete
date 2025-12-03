@@ -38,7 +38,6 @@ export function useTodos(userId: number) {
     load();
   }, []);
 
-  /** Add new todo */
   const handleAddTodo = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -80,7 +79,6 @@ export function useTodos(userId: number) {
     [newTitle, userId, focusInput],
   );
 
-  /** Update todo */
   const handleUpdateTodo = useCallback(
     async (id: number, data: Partial<Todo>) => {
       setProcessingIds(ids => [...ids, id]);
@@ -116,18 +114,18 @@ export function useTodos(userId: number) {
 
     setProcessingIds(ids => [...ids, ...completed.map(t => t.id)]);
 
-    await Promise.all(
+    const results = await Promise.allSettled(
       completed.map(async todo => {
-        try {
-          await deleteTodo(todo.id);
-          setTodos(prev => prev.filter(t => t.id !== todo.id));
-        } catch {
-          setNotification(ERROR_MESSAGES.DELETE);
-        } finally {
-          setProcessingIds(ids => ids.filter(x => x !== todo.id));
-        }
+        await deleteTodo(todo.id);
+        setTodos(prev => prev.filter(t => t.id !== todo.id));
+        setProcessingIds(ids => ids.filter(x => x !== todo.id));
       }),
     );
+
+    // If any failed, show error
+    if (results.some(r => r.status === 'rejected')) {
+      setNotification(ERROR_MESSAGES.DELETE);
+    }
   }, [todos]);
 
   return {

@@ -38,6 +38,7 @@ export const App: React.FC = () => {
     handleAddTodo,
     handleUpdateTodo,
     handleDeleteTodo,
+    handleClearCompleted,
   } = useTodos(USER_ID);
 
   const { error, isVisible, showError, hideError } = useErrorNotification();
@@ -91,6 +92,7 @@ export const App: React.FC = () => {
             filter={filter}
             setFilter={setFilter}
             hasCompletedTodos={hasCompletedTodos}
+            onClearCompleted={handleClearCompleted}
           />
         )}
       </div>
